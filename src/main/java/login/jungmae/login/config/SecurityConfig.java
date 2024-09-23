@@ -25,8 +25,6 @@ public class SecurityConfig {
     private final CorsFilter corsFilter;
     private final UserRepository userRepository;
 
-    @Autowired
-    private PrincipalOauth2UserService principalOauth2UserService;
 
     // 이 메서드는 스프링 컨테이너에 AuthenticationManager를 빈으로 등록하여, 다른 곳에서 인증 관련 처리를 할 수 있게 합니다.
     @Bean

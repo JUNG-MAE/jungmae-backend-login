@@ -1,5 +1,6 @@
 package login.jungmae.login.controller;
 
+import login.jungmae.login.config.service.UserService;
 import login.jungmae.login.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     @Autowired
-    UserRepository userRepository;
+    UserService userService;
 
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -31,6 +32,8 @@ public class UserController {
 
         System.out.println("code = " + code);
         HttpHeaders headers = new HttpHeaders();
+        String response = userService.getAccessToken(code);
+        System.out.println("response = " + response);
         return ResponseEntity.ok().headers(headers).body("success");
     }
 }
