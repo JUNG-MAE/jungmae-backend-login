@@ -25,16 +25,16 @@ spring:
       client:
         registration:
           google: #???? ???? ???? ? ? ??.
-            client-id: 675566061848-6tvav0oo29nr00t9qdp7vpp5o9oojtjm.apps.googleusercontent.com
-            client-secret: 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
+            client-id:
+            client-secret:
             scope:
               - email
               - profile
             # ??? redirect-url ? ????? ??? ?? provider? ?????? ??? ????.
 
           naver:
-            client-id: FP0nQnEUGIXGn_Ur7oqm
-            client-secret: yJEZHNMrSs
+            client-id:
+            client-secret:
             scope:
               - name
               - email
