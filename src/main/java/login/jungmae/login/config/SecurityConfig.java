@@ -2,7 +2,7 @@ package login.jungmae.login.config;
 
 import login.jungmae.login.config.jwt.JwtAuthenticationFilter;
 import login.jungmae.login.config.jwt.JwtAuthorizationFilter;
-import login.jungmae.login.config.oauth.PrincipalOauth2UserService;
+
 import login.jungmae.login.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

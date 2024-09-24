@@ -1,6 +1,7 @@
 package login.jungmae.login.controller;
 
 import login.jungmae.login.config.service.UserService;
+import login.jungmae.login.domain.oauth.NaverTokenBody;
 import login.jungmae.login.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +31,19 @@ public class UserController {
     @GetMapping("/oauth2/token")
     public ResponseEntity loginAndGetToken(@RequestParam String code) {
 
+        System.out.println("====컨트롤러의 loginAndGetToken 메서드 입장====");
         System.out.println("code = " + code);
+
+        NaverTokenBody naverTokenBody = userService.getAccessToken(code);
+        System.out.println("naverTokenBody = " + naverTokenBody);
+
+        //String jwtToken =
+        userService.saveAndGetToken(naverTokenBody.getAccess_token());
+
         HttpHeaders headers = new HttpHeaders();
-        String response = userService.getAccessToken(code);
-        System.out.println("response = " + response);
+        headers.add("Authorization", "Bearer " + naverTokenBody.getAccess_token());
+        System.out.println("response = " + naverTokenBody.getAccess_token());
+        System.out.println("====!컨트롤러의 loginAndGetToken 메서드 퇴장!====");
         return ResponseEntity.ok().headers(headers).body("success");
     }
 }

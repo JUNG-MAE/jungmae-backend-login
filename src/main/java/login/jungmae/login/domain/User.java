@@ -1,4 +1,4 @@
-package login.jungmae.login.model;
+package login.jungmae.login.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,9 +11,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @Data
 @Entity
@@ -26,23 +23,20 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // auto increment
     private long id;
     private String username;
+    private String name;
     private String password;
     private String email;
     private String role;
 
-    private String provider;
-    private String providerId;
     @CreationTimestamp
     private Timestamp createDate;
 
     @Builder
-    public User(String username, String password, String email, String role, String provider, String providerId, Timestamp createDate) {
+    public User(String username, String password, String email, String role, Timestamp createDate) {
         this.username = username;
         this.password = password;
         this.email = email;
         this.role = role;
-        this.provider = provider;
-        this.providerId = providerId;
         this.createDate = createDate;
     }
 
