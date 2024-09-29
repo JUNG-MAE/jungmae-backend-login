@@ -1,6 +1,6 @@
 package login.jungmae.login.config.auth;
 
-import login.jungmae.login.model.User;
+import login.jungmae.login.domain.User;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
