@@ -1,9 +1,12 @@
-package login.jungmae.login.config.service;
+package login.jungmae.login.service;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import login.jungmae.login.config.jwt.JwtProperties;
 import login.jungmae.login.domain.User;
+import login.jungmae.login.domain.dto.TokenDto;
 import login.jungmae.login.domain.oauth.NaverProfile;
 import login.jungmae.login.domain.oauth.NaverTokenBody;
 import login.jungmae.login.repository.UserRepository;
@@ -13,11 +16,13 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Date;
 import java.util.NoSuchElementException;
 
 @RequiredArgsConstructor
@@ -26,6 +31,9 @@ public class UserService {
 
     @Autowired
     private final UserRepository userRepository;
+
+    @Autowired
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public NaverTokenBody getAccessToken(String code) {
         System.out.println("=====서비스 부분입니다.=====");
@@ -86,6 +94,7 @@ public class UserService {
         );
         System.out.println("naverProfileResponse = " + naverProfileResponse);
         System.out.println("naverProfileResponse.getBody() = " + naverProfileResponse.getBody());
+        System.out.println("naverProfileResponse = " + naverProfileResponse);
 
         ObjectMapper objectMapper = new ObjectMapper();
         NaverProfile naverProfile = null;
@@ -99,39 +108,68 @@ public class UserService {
         return naverProfile;
     }
 
-    public String saveAndGetToken(String accessToken) {
+    public TokenDto saveAndGetToken(String naverAccessToken) {
 
         System.out.println("=== saveAndGetToken 메서드 입장 ===");
 
         // 엑세스 토큰을 사용해 유저 프로필정보를 가져옴.
-        NaverProfile naverProfile = getProfile(accessToken);
+        NaverProfile naverProfile = getProfile(naverAccessToken);
         System.out.println("naverProfile = " + naverProfile);
 
         User user = null;
-        String username = "naver_" + naverProfile.getResponse().id;
+        String provider = "naver";
+        String username = provider + "_" + naverProfile.getResponse().id;
+        String password = bCryptPasswordEncoder.encode("겟인데어");
 
         // 이미 회원가입이 되어 있다면 유저정보를 불러오고, 첫 로그인이면 회원가입 진행.
         try {
-            user = userRepository.findByUsername(username);
+            // Optional을 사용해 try-catch 활용함.
+            user = userRepository.findByUsername(username).get();
+            System.out.println("유저가 이미 등록되어 있어서 저장하지 않고 유저정보를 불러옴.");
         } catch (NoSuchElementException e) {
             user = User.builder()
                     .username(username)
                     .name(naverProfile.getResponse().name)
+                    .password(password)
                     .email(naverProfile.getResponse().email)
                     .role("ROLE_USER")
+                    .provider(provider)
                     .build();
             userRepository.save(user);
         }
 
-        return createToken(user);
+        System.out.println("User = " + user);
+        System.out.println(user.getUsername());
+
+        String accessToken = createAccessToken(user);
+        String refreshToken = createRefreshToken(user, accessToken);
+
+        System.out.println("===saveAndGetToken 메서드 탈출!===");
+        return new TokenDto(accessToken, refreshToken);
     }
 
-    public String createToken(User user) {
+    public String createAccessToken(User user) {
 
-//        String jwtToken = JWT.create()
-//                .withSubject();
+        String jwtToken = JWT.create()
+                .withSubject(user.getUsername())
+                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))    // 유효시간 10분
+                .withClaim("id", user.getId())
+                .withClaim("username", user.getUsername())
+                .sign(Algorithm.HMAC512(JwtProperties.SECRET));
 
-        return null;
+        return jwtToken;
+    }
+
+    public String createRefreshToken(User user, String accessToken) {
+
+        String jwtToken = JWT.create()
+                .withSubject(user.getUsername())
+                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))    // 유효시간 10분
+                .withClaim("username", user.getUsername())
+                .withClaim("accessToken", accessToken)
+                .sign(Algorithm.HMAC512(JwtProperties.SECRET));
+
+        return jwtToken;
     }
 
 }

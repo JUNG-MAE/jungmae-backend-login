@@ -9,8 +9,9 @@ public class NaverProfile {
     private String message;
     private Response response;
 
+
     @Data
-    public class Response {
+    public static class Response {
         public String id;
         public String email;
         public String name;

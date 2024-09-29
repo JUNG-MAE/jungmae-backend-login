@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Data
 @Entity
@@ -28,16 +31,29 @@ public class User {
     private String email;
     private String role;
 
+    private String provider;
+
     @CreationTimestamp
     private Timestamp createDate;
 
     @Builder
-    public User(String username, String password, String email, String role, Timestamp createDate) {
+    public User(String username,String name, String password, String email, String role, String provider, Timestamp createDate) {
         this.username = username;
+        this.name = name;
         this.password = password;
         this.email = email;
         this.role = role;
+        this.provider = provider;
         this.createDate = createDate;
+    }
+
+    public List<String> getRoleList(){
+        if (this.role.length() > 0) {
+            return Arrays.asList(this.role.split(","));
+        }
+        else {
+            return new ArrayList<>();
+        }
     }
 
 }
