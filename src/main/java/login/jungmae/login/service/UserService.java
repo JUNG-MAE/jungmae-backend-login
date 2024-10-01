@@ -2,11 +2,13 @@ package login.jungmae.login.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import login.jungmae.login.config.jwt.JwtProperties;
 import login.jungmae.login.domain.User;
 import login.jungmae.login.domain.dto.TokenDto;
+import login.jungmae.login.domain.dto.UserDto;
 import login.jungmae.login.domain.oauth.NaverProfile;
 import login.jungmae.login.domain.oauth.NaverTokenBody;
 import login.jungmae.login.repository.UserRepository;
@@ -35,6 +37,7 @@ public class UserService {
     @Autowired
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    // 해당 oauth에서 받은 Authorization code를 사용해 oauth의 토큰관련 데이터를 반환
     public NaverTokenBody getAccessToken(String code) {
         System.out.println("=====서비스 부분입니다.=====");
 
@@ -76,11 +79,12 @@ public class UserService {
         return naverTokenBody;
     }
 
-    public NaverProfile getProfile(String accessToken) {
+    // oauth의 엑세스 토큰을 사용해 해당 oauth의 프로필 정보를 반환
+    public NaverProfile getProfile(String oauthAccessToken) {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);
+        headers.add("Authorization", "Bearer " + oauthAccessToken);
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
         HttpEntity<MultiValueMap<String, String>> naverProfileRequest = new HttpEntity<>(headers);
@@ -108,6 +112,7 @@ public class UserService {
         return naverProfile;
     }
 
+    // 첫 로그인이라면 유저데이터 저장하고 로그인 이력이 있다면 유저정보를 가져온 뒤, accessToken과 refreshToken을 생성해서 반환
     public TokenDto saveAndGetToken(String naverAccessToken) {
 
         System.out.println("=== saveAndGetToken 메서드 입장 ===");
@@ -119,7 +124,7 @@ public class UserService {
         User user = null;
         String provider = "naver";
         String username = provider + "_" + naverProfile.getResponse().id;
-        String password = bCryptPasswordEncoder.encode("겟인데어");
+        String password = bCryptPasswordEncoder.encode("중매");
 
         // 이미 회원가입이 되어 있다면 유저정보를 불러오고, 첫 로그인이면 회원가입 진행.
         try {
@@ -148,11 +153,12 @@ public class UserService {
         return new TokenDto(accessToken, refreshToken);
     }
 
+    // accessToken 생성
     public String createAccessToken(User user) {
 
         String jwtToken = JWT.create()
                 .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))    // 유효시간 10분
+                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.ACCESS_TOKEN_EXPIRATION_TIME))    // 유효시간 1분
                 .withClaim("id", user.getId())
                 .withClaim("username", user.getUsername())
                 .sign(Algorithm.HMAC512(JwtProperties.SECRET));
@@ -160,16 +166,53 @@ public class UserService {
         return jwtToken;
     }
 
+    // refreshToken 생성
     public String createRefreshToken(User user, String accessToken) {
 
         String jwtToken = JWT.create()
                 .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))    // 유효시간 10분
+                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.REFRESH_TOKEN_EXPIRATION_TIME))    // 유효시간 7일
                 .withClaim("username", user.getUsername())
                 .withClaim("accessToken", accessToken)
                 .sign(Algorithm.HMAC512(JwtProperties.SECRET));
 
         return jwtToken;
+    }
+
+    public String restoreAccessToken(String refreshToken) {
+
+        User user = null;
+        String username = null;
+        String accessToken = null;
+        username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(refreshToken).getClaim("username").asString();
+        user = userRepository.findByUsername(username).get();
+        accessToken = createAccessToken(user);
+
+        return accessToken;
+    }
+
+    // 유저 정보 반환
+    public UserDto getUser(String accessToken) {
+
+        String username = null;
+        String restoreAccessToken = null;
+        TokenDto tokenDto = null;
+
+        try {
+            System.out.println("=== UserService의 getUser 메소드 try 입장! ===");
+            username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(accessToken).getClaim("username").asString();
+            System.out.println("username = " + username);
+            User user = userRepository.findByUsername(username).get();
+            System.out.println("user = " + user);
+            return new UserDto(user);
+
+        } catch (TokenExpiredException e) {
+            System.out.println("=== UserService의 getUser 메소드 catch 입장!===");
+            System.out.println("Access Token 만료!");
+            return null;
+        }
+
+
     }
 
 }
