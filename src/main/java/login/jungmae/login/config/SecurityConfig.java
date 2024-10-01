@@ -61,9 +61,10 @@ public class SecurityConfig {
 
         // request 에 대한 인증 인가 설정
         http.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                .requestMatchers("oauth2/user/**").hasAnyRole("USER","ADMIN")
+//                .requestMatchers("oauth2/user/**").hasAnyRole("USER","ADMIN")
                 .requestMatchers("oauth2/manager/**").hasRole("ADMIN")
                 .requestMatchers("api/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers("oauth2/token/**").permitAll()
                 .anyRequest().permitAll()
         );
 

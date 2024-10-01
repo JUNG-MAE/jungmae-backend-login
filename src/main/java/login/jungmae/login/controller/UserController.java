@@ -2,7 +2,9 @@ package login.jungmae.login.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import login.jungmae.login.config.auth.PrincipalDetails;
+import login.jungmae.login.domain.User;
 import login.jungmae.login.domain.dto.TokenDto;
+import login.jungmae.login.domain.dto.UserDto;
 import login.jungmae.login.service.UserService;
 import login.jungmae.login.domain.oauth.NaverTokenBody;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +30,6 @@ public class UserController {
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
-//    // 회원정보
-//    @GetMapping("/info")
-//    public ResponseEntity<?> info() {
-//
-//    }
 
     @GetMapping("/oauth2/token")
     public ResponseEntity<?> loginAndGetToken(@RequestParam String code) {
@@ -57,10 +54,33 @@ public class UserController {
     @GetMapping("/oauth2/user")
     public ResponseEntity<?> getUser(HttpServletRequest request) {
 
-        System.out.println("AccessToken = " + request.getHeader("ACCESS_TOKEN"));
-        System.out.println("RefreshToken = " + request.getHeader("REFRESH_TOKEN"));
-        PrincipalDetails principalDetails = (PrincipalDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return new ResponseEntity<>(principalDetails, HttpStatus.OK);
+        System.out.println("AccessToken = " + request.getHeader("Authorization"));
+
+        String accessToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        UserDto userDto = null;
+
+        try {
+            userDto = userService.getUser(accessToken);
+            System.out.println("userDto = " + userDto.toString());
+            System.out.println("200 성공 반환");
+            return new ResponseEntity<>(userDto, HttpStatus.OK);
+        } catch (NullPointerException e) {
+            // 엑세스 토큰이 만료되었으므로 유효하지 않은 요청으므로 401 상태를 반환
+            System.out.println("401에러 반환");
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @GetMapping("/oauth2/token/restore")
+    public ResponseEntity<?> restoreAccessToken(HttpServletRequest request) {
+        System.out.println("RefreshToken = " + request.getHeader("Authorization"));
+        String refreshToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String accessToken = null;
+
+        accessToken = userService.restoreAccessToken(refreshToken);
+
+        System.out.println("restore access token = " + accessToken);
+        return new ResponseEntity<>(accessToken, HttpStatus.OK);
     }
 
 }
