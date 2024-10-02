@@ -15,10 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,7 +28,7 @@ public class UserController {
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
 
-    @GetMapping("/oauth2/token")
+    @PostMapping("/oauth2/token")
     public ResponseEntity<?> loginAndGetToken(@RequestParam String code) {
 
         System.out.println("====컨트롤러의 loginAndGetToken 메서드 입장====");
@@ -71,16 +68,16 @@ public class UserController {
         }
     }
 
-    @GetMapping("/oauth2/token/restore")
-    public ResponseEntity<?> restoreAccessToken(HttpServletRequest request) {
+    @PostMapping("/oauth2/token/restore")
+    public ResponseEntity<?> restoreToken(HttpServletRequest request) {
         System.out.println("RefreshToken = " + request.getHeader("Authorization"));
         String refreshToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String accessToken = null;
+        TokenDto tokenDto = null;
 
-        accessToken = userService.restoreAccessToken(refreshToken);
+        tokenDto = userService.restoreAccessToken(refreshToken);
 
-        System.out.println("restore access token = " + accessToken);
-        return new ResponseEntity<>(accessToken, HttpStatus.OK);
+        System.out.println("restore token = " + tokenDto.toString());
+        return new ResponseEntity<>(tokenDto, HttpStatus.OK);
     }
 
 }

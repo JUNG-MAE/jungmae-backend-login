@@ -179,16 +179,18 @@ public class UserService {
         return jwtToken;
     }
 
-    public String restoreAccessToken(String refreshToken) {
+    public TokenDto restoreAccessToken(String refreshToken) {
 
         User user = null;
         String username = null;
-        String accessToken = null;
+        String restoreAccessToken = null;
+        String restoreRefreshToken = null;
         username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(refreshToken).getClaim("username").asString();
         user = userRepository.findByUsername(username).get();
-        accessToken = createAccessToken(user);
+        restoreAccessToken = createAccessToken(user);
+        restoreRefreshToken = createRefreshToken(user, restoreAccessToken);
 
-        return accessToken;
+        return new TokenDto(restoreAccessToken, restoreRefreshToken);
     }
 
     // 유저 정보 반환
