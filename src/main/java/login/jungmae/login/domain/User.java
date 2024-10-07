@@ -27,13 +27,10 @@ public class User {
     private String password;
     private String email;
     private String role;
-
     private String provider;
-
-    @CreationTimestamp
     private Timestamp createDate;
 
-    @Builder
+    //@Builder
     public User(String username,String name, String password, String email, String role, String provider, Timestamp createDate) {
         this.username = username;
         this.name = name;
