@@ -31,10 +31,8 @@ import java.util.NoSuchElementException;
 @Service
 public class UserService {
 
-    @Autowired
     private final UserRepository userRepository;
 
-    @Autowired
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     // 해당 oauth에서 받은 Authorization code를 사용해 oauth의 토큰관련 데이터를 반환
