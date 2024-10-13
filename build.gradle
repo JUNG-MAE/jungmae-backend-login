@@ -7,6 +7,12 @@ plugins {
 group = 'login.jungmae'
 version = '0.0.1-SNAPSHOT'
 
+bootJar{
+	archivesBaseName = 'jung-mae-login'
+	archiveFileName = 'jung-mae-login.jar'
+	archiveVersion = "0.0.1"
+}
+
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
