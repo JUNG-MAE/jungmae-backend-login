@@ -44,12 +44,6 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-bootJar{
-	archivesBaseName = 'login'
-	archiveFileName = 'jungmae-login.jar'
-	archiveVersion = "0.0.1"
-}
-
 tasks.named('test') {
 	useJUnitPlatform()
 }
