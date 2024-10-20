@@ -10,7 +10,7 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql-service:3306/jungmae-chat?serverTimezone=Asia/Seoul
+    url: jdbc:mysql://default-mysql-service-84b8d-27082928-aeb0167bd00f.kr.lb.naverncp.com:13306/jungmae-chat?serverTimezone=Asia/Seoul
     username: root
     password: 1234
 
