@@ -10,17 +10,16 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql-service:3306/jungmae-chat?serverTimezone=Asia/Seoul
+    url: jdbc:mysql://mysql-service:3306/jungmae-chat
     username: root
     password: 1234
 
   jpa:
     hibernate:
-      dialect: org.hibernate.dialect.MySQLDialect
-      ddl-auto: update #create update none
-      naming:
-        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-    show-sql: true
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
   security:
     oauth2:
       client:
