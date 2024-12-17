@@ -24,6 +24,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.NoSuchElementException;
 
@@ -34,6 +35,8 @@ public class UserService {
     private final UserRepository userRepository;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    // code기반 로그인 구현 → accessKey기반 로그인 구현으로 수정으로 인해 주석처리
 
     // 해당 oauth에서 받은 Authorization code를 사용해 oauth의 토큰관련 데이터를 반환
     public NaverTokenBody getAccessToken(String code) {
@@ -137,6 +140,7 @@ public class UserService {
                     .email(naverProfile.getResponse().email)
                     .role("ROLE_USER")
                     .provider(provider)
+                    .createDate(new Timestamp(System.currentTimeMillis()))
                     .build();
             userRepository.save(user);
         }
@@ -177,6 +181,7 @@ public class UserService {
         return jwtToken;
     }
 
+    // refreshToken으로 accessToken 재발급
     public TokenDto restoreAccessToken(String refreshToken) {
 
         User user = null;
@@ -200,6 +205,7 @@ public class UserService {
 
         try {
             System.out.println("=== UserService의 getUser 메소드 try 입장! ===");
+            // 엑세스 토큰 만료 검증 및 복호화하여 username get
             username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(accessToken).getClaim("username").asString();
             System.out.println("username = " + username);
             User user = userRepository.findByUsername(username).get();
@@ -207,7 +213,6 @@ public class UserService {
             return new UserDto(user);
 
         } catch (TokenExpiredException e) {
-            System.out.println("=== UserService의 getUser 메소드 catch 입장!===");
             System.out.println("Access Token 만료!");
             return null;
         }

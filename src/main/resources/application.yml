@@ -10,13 +10,14 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://172.31.12.233:3306/jungmae-chat
-    username: root
-    password: 1234
+    url: jdbc:mysql://${MYSQL_URL}:3306/jungmae-chat
+#    url: jdbc:mysql://${MYSQL_URL}:3306/jungmae-auction
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
