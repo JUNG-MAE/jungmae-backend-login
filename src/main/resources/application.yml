@@ -10,8 +10,8 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_URL}:3306/jungmae-chat
-#    url: jdbc:mysql://${MYSQL_URL}:3306/jungmae-auction
+#    url: jdbc:mysql://${MYSQL_URL}:3306/jungmae-chat
+    url: jdbc:mysql://${MYSQL_URL}:3306/jungmae-auction
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
 
