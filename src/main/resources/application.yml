@@ -10,8 +10,8 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://${MYSQL_URL}:3306/jungmae-chat
-    url: jdbc:mysql://${MYSQL_URL}:3306/jungmae-auction
+    url: jdbc:mysql://${MYSQL_URL}:3306/jungmae-chat
+#    url: jdbc:mysql://${MYSQL_URL}:3306/jungmae-auction
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
 
@@ -27,8 +27,8 @@ spring:
         registration:
 
           naver:
-            client-id: FP0nQnEUGIXGn_Ur7oqm
-            client-secret: yJEZHNMrSs
+            client-id: ${NAVER_CLIENT_ID}
+            client-secret: ${NAVER_CLIENT_SECRET}
             scope:
               - name
               - email
