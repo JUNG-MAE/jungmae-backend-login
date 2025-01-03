@@ -80,7 +80,7 @@ public class UserController {
             System.out.println("    로그인 성공!    ");
             return new ResponseEntity<>(tokenDto, HttpStatus.OK);
         } catch (Exception e) {
-            System.out.println("    로그인 실패!!!    ");
+            System.out.println("    로그인 실패!!!   ");
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
