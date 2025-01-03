@@ -68,23 +68,19 @@ public class UserController {
     }
 
     @PostMapping("/oauth2/token")
-    public ResponseEntity<?> loginAndGetToken(@RequestParam String accessToken) {
+    public ResponseEntity<?> loginAndGetToken(HttpServletRequest request) {
 
         System.out.println("====컨트롤러의 loginAndGetToken 메서드 입장====");
-        System.out.println("caccessToken = " + accessToken);
+        System.out.println("AccessToken = " + request.getHeader("Authorization"));
+        String accessToken = request.getHeader("Authorization");
 
         try {
-            // 안드로이드 code access 불가로 인한 주석처리
-            // code기반 로그인 구현 → accessKey기반 로그인 구현으로 수정
-//            NaverTokenBody naverTokenBody = userService.getAccessToken(code);
-//            System.out.println("naverTokenBody = " + naverTokenBody);
-//            TokenDto tokenDto = userService.saveAndGetToken(naverTokenBody.getAccess_token());
             TokenDto tokenDto = userService.saveAndGetToken(accessToken);
 
             System.out.println("    로그인 성공!    ");
             return new ResponseEntity<>(tokenDto, HttpStatus.OK);
         } catch (Exception e) {
-            System.out.println("    로그인 실패!!!    ");
+            System.out.println("    로그인 실패!!!   ");
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }

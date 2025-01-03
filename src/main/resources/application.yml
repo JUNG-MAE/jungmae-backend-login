@@ -27,8 +27,8 @@ spring:
         registration:
 
           naver:
-            client-id: FP0nQnEUGIXGn_Ur7oqm
-            client-secret: yJEZHNMrSs
+            client-id: ${NAVER_CLIENT_ID}
+            client-secret: ${NAVER_CLIENT_SECRET}
             scope:
               - name
               - email
