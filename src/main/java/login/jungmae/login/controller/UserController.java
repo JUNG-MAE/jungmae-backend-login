@@ -92,7 +92,7 @@ public class UserController {
 
         System.out.println("AccessToken = " + request.getHeader("Authorization"));
 
-        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION));
+        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
         String accessToken = authorization.split(" ")[1];
         UserDto userDto = null;
 
