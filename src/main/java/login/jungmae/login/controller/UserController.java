@@ -72,7 +72,8 @@ public class UserController {
 
         System.out.println("====컨트롤러의 loginAndGetToken 메서드 입장====");
         System.out.println("AccessToken = " + request.getHeader("Authorization"));
-        String accessToken = request.getHeader("Authorization");
+        String authorization = request.getHeader("Authorization");
+        String accessToken = authorization.split(" ")[1];   // Bearer를 제외한 토큰값만 할당
 
         try {
             TokenDto tokenDto = userService.saveAndGetToken(accessToken);
@@ -91,7 +92,8 @@ public class UserController {
 
         System.out.println("AccessToken = " + request.getHeader("Authorization"));
 
-        String accessToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION));
+        String accessToken = authorization.split(" ")[1];
         UserDto userDto = null;
 
         try {
@@ -109,7 +111,8 @@ public class UserController {
     @PostMapping("/oauth2/token/restore")
     public ResponseEntity<?> restoreToken(HttpServletRequest request) {
         System.out.println("RefreshToken = " + request.getHeader("Authorization"));
-        String refreshToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String refreshToken = authorization.split(" ")[1];
         TokenDto tokenDto = null;
 
         tokenDto = userService.restoreAccessToken(refreshToken);
