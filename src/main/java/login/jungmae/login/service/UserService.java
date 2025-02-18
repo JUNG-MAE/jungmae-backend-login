@@ -2,9 +2,12 @@ package login.jungmae.login.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import login.jungmae.login.config.exception.InvalidTokenException;
+import login.jungmae.login.config.exception.UserNotFoundException;
 import login.jungmae.login.config.jwt.JwtProperties;
 import login.jungmae.login.domain.User;
 import login.jungmae.login.domain.dto.TokenDto;
@@ -19,14 +22,17 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import javax.naming.AuthenticationException;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -165,7 +171,7 @@ public class UserService {
                 .withClaim("username", user.getUsername())
                 .sign(Algorithm.HMAC512(JwtProperties.SECRET));
 
-        return jwtToken;
+        return "Bearer " + jwtToken;
     }
 
     // refreshToken 생성
@@ -178,18 +184,41 @@ public class UserService {
                 .withClaim("accessToken", accessToken)
                 .sign(Algorithm.HMAC512(JwtProperties.SECRET));
 
-        return jwtToken;
+        return "Bearer " + jwtToken;
     }
 
-    // refreshToken으로 accessToken 재발급
+    // refreshToken으로 accessToken, refreshToken 모두 재발급
     public TokenDto restoreAccessToken(String refreshToken) {
 
         User user = null;
         String username = null;
         String restoreAccessToken = null;
         String restoreRefreshToken = null;
-        username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(refreshToken).getClaim("username").asString();
-        user = userRepository.findByUsername(username).get();
+
+        // 토큰 형식 검증
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new InvalidTokenException("Invalid token format");
+        }
+
+
+        try {
+            // 토큰 서명 검증 및 사용자 이름 추출
+            username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET))
+                    .build()
+                    .verify(refreshToken)
+                    .getClaim("username")
+                    .asString();
+            // 사용자 조회
+            user = userRepository.findByUsername(username).get();
+        } catch (TokenExpiredException e) {
+            System.out.println("RefreshToken 만료!");
+            throw e;
+        } catch (UserNotFoundException e) {
+            System.out.println("User not found!");
+            throw e;
+        }
+
+
         restoreAccessToken = createAccessToken(user);
         restoreRefreshToken = createRefreshToken(user, restoreAccessToken);
 
@@ -203,18 +232,39 @@ public class UserService {
         String restoreAccessToken = null;
         TokenDto tokenDto = null;
 
+        // 토큰 형식 검증
+        if (accessToken == null || accessToken.isEmpty()) {
+            throw new InvalidTokenException("Invalid token format");
+        }
+
         try {
             System.out.println("=== UserService의 getUser 메소드 try 입장! ===");
             // 엑세스 토큰 만료 검증 및 복호화하여 username get
-            username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(accessToken).getClaim("username").asString();
+            username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET))
+                    .build()
+                    .verify(accessToken)
+                    .getClaim("username")
+                    .asString();
+
             System.out.println("username = " + username);
-            User user = userRepository.findByUsername(username).get();
-            System.out.println("user = " + user);
-            return new UserDto(user);
+            Optional<User> userOptional = userRepository.findByUsername(username);
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                System.out.println("user = " + user);
+                return new UserDto(user);
+            } else {    // 유저 정보가 없을 경우 예외처리
+                throw new RuntimeException("User not found");
+            }
 
         } catch (TokenExpiredException e) {
             System.out.println("Access Token 만료!");
-            return null;
+            throw e;
+        } catch (NullPointerException e) {
+            System.out.println("유효하지 않은 토큰:  " + e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            System.out.println("토큰 검증 중 오류 발생: " + e.getMessage());
+            throw e;
         }
 
 
