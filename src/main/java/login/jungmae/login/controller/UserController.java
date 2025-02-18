@@ -1,7 +1,10 @@
 package login.jungmae.login.controller;
 
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import jakarta.servlet.http.HttpServletRequest;
 import login.jungmae.login.config.auth.PrincipalDetails;
+import login.jungmae.login.config.exception.InvalidTokenException;
+import login.jungmae.login.config.exception.UserNotFoundException;
 import login.jungmae.login.domain.User;
 import login.jungmae.login.domain.dto.TokenDto;
 import login.jungmae.login.domain.dto.UserDto;
@@ -93,18 +96,41 @@ public class UserController {
         System.out.println("AccessToken = " + request.getHeader("Authorization"));
 
         String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String accessToken = authorization.split(" ")[1];
+
         UserDto userDto = null;
 
+        // Authorization 헤더가 없거나 형식이 잘못된 경우 처리 -> 400 BAD_REQUEST
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            System.out.println("Invalid Authorization header");
+            return new ResponseEntity<>("Invalid Authorization header", HttpStatus.BAD_REQUEST);
+        }
+
+        String accessToken = authorization.split(" ")[1];
+
+        // 성공
         try {
             userDto = userService.getUser(accessToken);
             System.out.println("userDto = " + userDto.toString());
             System.out.println("200 성공 반환");
             return new ResponseEntity<>(userDto, HttpStatus.OK);
-        } catch (NullPointerException e) {
+        // 토큰 만료 오류
+        } catch (TokenExpiredException e) {
             // 엑세스 토큰이 만료되었으므로 유효하지 않은 요청으므로 401 상태를 반환
-            System.out.println("401에러 반환");
+            System.out.println("accessToken expired     ->     401에러 반환");
             return new ResponseEntity<>("accessToken expired", HttpStatus.UNAUTHORIZED);
+        // 유저 정보 없음
+        } catch (UserNotFoundException e) {
+            // 서버에서 처리는 성공하였으나 반환할 유저 정보가 없으므로 204 상태 반환
+            System.out.println("유저 정보가 없음     ->     204성공 반환");
+            return new ResponseEntity<>("유저 정보가 없습니다.", HttpStatus.NO_CONTENT);
+        } catch (InvalidTokenException e)  {
+            System.out.println("Invalid Access Token    ->    400에러 반환");
+            return new ResponseEntity<>("Invalid Access Token", HttpStatus.BAD_REQUEST);
+        // 서버 오류
+        } catch (Exception e) {
+            // 예기치 못한 서버 오류
+            System.out.println("예기치 못한 서버오류     ->     500에러 반환");
+            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -112,13 +138,35 @@ public class UserController {
     public ResponseEntity<?> restoreToken(HttpServletRequest request) {
         System.out.println("RefreshToken = " + request.getHeader("Authorization"));
         String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        // Authorization 헤더가 없거나 형식이 잘못된 경우 처리 -> 400 BAD_REQUEST
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            System.out.println("Invalid Authorization header");
+            return new ResponseEntity<>("Invalid Authorization header", HttpStatus.BAD_REQUEST);
+        }
+
         String refreshToken = authorization.split(" ")[1];
-        TokenDto tokenDto = null;
+        TokenDto tokenDto;
 
-        tokenDto = userService.restoreAccessToken(refreshToken);
-
-        System.out.println("restore token = " + tokenDto.toString());
-        return new ResponseEntity<>(tokenDto, HttpStatus.OK);
+        //성공
+        try {
+            tokenDto = userService.restoreAccessToken(refreshToken);
+            System.out.println("반환할 restore token = " + tokenDto.toString());
+            return new ResponseEntity<>(tokenDto, HttpStatus.OK);
+        } catch (TokenExpiredException e) {
+            System.out.println("refreshToken expired    ->    401에러 반환");
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (UserNotFoundException e) {
+            // 서버에서 처리는 성공하였으나 반환할 유저 정보가 없으므로 204 상태 반환
+            System.out.println("유저 정보가 없음     ->     204성공 반환");
+            return new ResponseEntity<>("유저 정보가 없습니다.", HttpStatus.NO_CONTENT);
+        } catch (InvalidTokenException e) {
+            System.out.println("Invalid Refresh Token    ->    400에러 반환");
+            return new ResponseEntity<>("Invalid Refresh Token", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            System.out.println("Internal Server Error    ->    500에러 반환");
+            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }
