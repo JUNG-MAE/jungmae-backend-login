@@ -253,7 +253,7 @@ public class UserService {
                 System.out.println("user = " + user);
                 return new UserDto(user);
             } else {    // 유저 정보가 없을 경우 예외처리
-                throw new RuntimeException("User not found");
+                throw new UserNotFoundException("User not found");
             }
 
         } catch (TokenExpiredException e) {
