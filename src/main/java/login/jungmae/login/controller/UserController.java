@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor    // 생성자주입
-@RequestMapping("/login-api")
 public class UserController {
 
     private final Environment env;
