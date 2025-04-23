@@ -46,7 +46,7 @@ public class UserService {
 
     // 해당 oauth에서 받은 Authorization code를 사용해 oauth의 토큰관련 데이터를 반환
     public NaverTokenBody getAccessToken(String code) {
-        System.out.println("=====서비스 부분입니다.=====");
+        System.out.println("===== Client에서 code를 받아 accessToken을 발급받는 서비스 로직입니다.=====");
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -60,9 +60,11 @@ public class UserService {
         map.add("code", code);
         map.add("client_secret", "yJEZHNMrSs");
 
+        // naver accessToken을 발급받기 위한 데이터 구성
         HttpEntity<MultiValueMap<String, String>> naverTokenRequest =
                 new HttpEntity<>(map, headers);
 
+        // naver accessToken 발급
         ResponseEntity<String> accessTokenResponse = restTemplate.exchange(
                 "https://nid.naver.com/oauth2.0/token",
                 HttpMethod.POST,

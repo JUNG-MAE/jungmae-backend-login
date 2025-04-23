@@ -12,6 +12,7 @@ import login.jungmae.login.service.UserService;
 import login.jungmae.login.domain.oauth.NaverTokenBody;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,14 +22,11 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequiredArgsConstructor
+@RequiredArgsConstructor    // 생성자주입
 public class UserController {
 
-    @Autowired
-    UserService userService;
-
-    @Autowired
-    BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final Environment env;
+    private final UserService userService;
 
 
 //    // 안드로이드 code access 불가로 인한 주석처리
@@ -51,6 +49,11 @@ public class UserController {
 //            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 //        }
 //    }
+
+    @GetMapping("/health-check")
+    public String status() {
+        return String.format("It's Working in User Service on Port: %s", env.getProperty("local.server.port"));
+    }
 
     @PostMapping("/oauth2/token/test")
     public ResponseEntity<?> getAuthAccessToken(@RequestParam String code) {
