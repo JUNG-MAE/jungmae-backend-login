@@ -15,7 +15,8 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://${EUREKA_SERVER_URL}:8761/eureka
-
+  instance:
+    prefer-ip-address: true
 
 spring:
   application:
